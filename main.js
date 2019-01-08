@@ -25,18 +25,14 @@ const containerType = Object.freeze({
 });
 
 // Config
+const msgSound = process.env['PUSHOVER_SOUND'] || 'tugboat';
+const msgPriority = process.env['PUSHOVER_PRIORITY'] || 0;
+const msgTitle = process.env['PUSHOVER_TITLE'] || 'Container herinnering';
 const dayOffset = process.env['DAYOFFSET'] || 0;
 const zipCode = process.env['ZIPCODE'];
 const houseNumber = process.env['HOUSENUMBER'];
 const houseNumberAddition = process.env['HOUSENUMBER_ADDITION'] || '';
 const url = `https://www.afvalwijzer-arnhem.nl/applicatie?ZipCode=${zipCode}&HouseNumber=${houseNumber}&HouseNumberAddition=${houseNumberAddition}`;
-
-var msg = {
-    message: 'placeholder',
-    title: 'Container herinnering',
-    sound: 'tugboat',
-    priority: 1
-};
 
 async function getUpcomingDates() {
     try {
@@ -97,7 +93,13 @@ async function main() {
             let checkDate = moment().add(dayOffset, 'day');
 
             if (moment(obj.date).isSame(checkDate, 'day')) {
-                msg.message = `${dayString} moet de '${containerType[type] || type + ' container'}' aan de weg`;
+                var msg = {
+                    message: `${dayString} moet de '${containerType[type] || type + ' container'}' aan de weg`,
+                    title: msgTitle,
+                    sound: msgSound,
+                    priority: msgPriority,
+                };
+
                 pushover.send(msg, function (err, result) {
                     if (err) {
                         throw err
