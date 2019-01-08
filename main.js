@@ -102,14 +102,14 @@ async function main() {
                     if (err) {
                         throw err
                     }
-                    console.log(`Pushover notificatie verstuurd: '${msg.message}' :: ${result}`);
+                    console.log(`[${moment().format('DD-MM-YYYY HH:MM')}] Pushover notificatie verstuurd: '${msg.message}' :: ${result}`);
                 });
                 notified = true;
             }
         }
     );
 
-    notified || console.log(`${dayString} wordt er geen container opgehaald...`);
+    notified || console.log(`[${moment().format('DD-MM-YYYY HH:MM')}] ${dayString} wordt er geen container opgehaald...`);
 }
 
 main();
