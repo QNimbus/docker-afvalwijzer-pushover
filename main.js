@@ -21,10 +21,11 @@ const containerType = Object.freeze({
     'GFT': 'GFT container (groen)',
     'restafval': 'Restafval container (grijs - klein)',
     'papier': 'Papier container (blauw)',
-    'kerstbomen': 'Kerstbomen'
+    'kerstbomen': 'Kerstboom'
 });
 
 // Config
+const dayOffset = process.env['DAYOFFSET'] || 0;
 const zipCode = process.env['ZIPCODE'];
 const houseNumber = process.env['HOUSENUMBER'];
 const houseNumberAddition = process.env['HOUSENUMBER_ADDITION'] || '';
@@ -85,34 +86,30 @@ async function getUpcomingDates() {
 async function main() {
     // Gets upcoming dates for the containers in JSON format (e.g. { 'papier': { 'omschrijving: 'Papier en karton', 'datum': '2019-01-12T00:00:00.000' } })
     let upcomingDates = await getUpcomingDates();
+    let notified = false;
+    let dayString = '';
 
+    dayString = ['Vandaag', 'Morgen', 'Overmorgen'][dayOffset] || `Over ${dayOffset} dagen`;
+    
     // Loop through upcoming dates and see if any is for today or tomorrow
     Object.entries(upcomingDates).forEach(
         ([type, obj]) => {
-            let today = moment();
-            let tomorrow = moment().add(1, 'day');
+            let checkDate = moment().add(dayOffset, 'day');
 
-            if (moment(obj.date).isSame(today, 'day')) {
-                msg.message = `Vandaag moet de ${containerType[type] || type + ' container'} aan de weg`;
+            if (moment(obj.date).isSame(checkDate, 'day')) {
+                msg.message = `${dayString} moet de '${containerType[type] || type + ' container'}' aan de weg`;
                 pushover.send(msg, function (err, result) {
                     if (err) {
                         throw err
                     }
-                    console.log(`Sending pushover notification: '${msg.message}' :: ${result}`);
+                    console.log(`Pushover notificatie verstuurd: '${msg.message}' :: ${result}`);
                 });
-            }
-
-            if (moment(obj.date).isSame(tomorrow, 'day')) {
-                msg.message = `Morgen moet de ${containerType[type] || type + ' container'} aan de weg`;
-                pushover.send(msg, function (err, result) {
-                    if (err) {
-                        throw err
-                    }
-                    console.log(`Sending pushover notification: '${msg.message}' :: ${result}`);
-                });
+                notified = true;
             }
         }
     );
+
+    notified || console.log(`${dayString} wordt er geen container opgehaald...`);
 }
 
 main();
